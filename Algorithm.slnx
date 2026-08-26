@@ -4,5 +4,6 @@
   </Configurations>
   <Project Path="BinarySearch/BinarySearch.vcxproj" Id="25affad7-3f1b-4374-a2df-349b11c3df5c" />
   <Project Path="Bu/Bu.vcxproj" Id="60be5971-3e7d-4b18-98ab-ffdde638454b" />
+  <Project Path="Random/Random.vcxproj" Id="1f259379-744b-4447-9b21-f0f6793e3b7e" />
   <Project Path="Recursive/Recursive.vcxproj" Id="8f7d51ed-9ede-4915-9230-8310ce531b1b" />
 </Solution>
