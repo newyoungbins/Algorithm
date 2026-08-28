@@ -139,6 +139,17 @@ void PrintArray(const int* array, int length)
 			}
 		}
 	}
+
+	int CompareTwoInts(const void* a, const void* b)
+	{
+		int arg1 = *(const int*)a;
+		int arg2 = *(const int*)b;
+
+		if (arg1 < arg2) return -1;
+		if (arg1 > arg2) return 1;
+		return 0;
+	}
+
 		int main()
 		{
 			// 랜덤에 시드 전달.
@@ -182,6 +193,17 @@ void PrintArray(const int* array, int length)
 			PrintArray(array, length);
 			//std::cout << "정렬 전 배열: ";
 			//PrintArray(array, length);
+
+			// 메모리 복사 -> 빠름.
+			memcpy(array, original, sizeof(int) * length);
+
+			// 라이브러리 qsort 함수 사용.
+			start = GetTime();
+			qsort(array, length, sizeof(int), CompareTwoInts);
+			end = GetTime();
+
+			// 시간 출력.
+			std::cout << "qsort elapsed time: " << GetElapsedTime(start, end) << "\n";
 
 			// 메모리 복사 -> 빠름.
 			memcpy(array, original, sizeof(int) * length);
