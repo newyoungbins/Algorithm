@@ -1,6 +1,18 @@
 ﻿#include <iostream>
 #include <cstdlib>
 #include <ctime>
+#include <Windows.h>
+#include <algorithm>
+
+// 비교를 위한 함수 포인터.
+typedef bool (*Comparer)(int, int);
+
+// 비교에 사용할 함수(로직).
+bool Less(int a, int b) { return a < b; }
+bool LessEqual(int a, int b) { return a <= b; }
+
+bool Greater(int a, int b) { return a > b; }
+bool GreaterEqual(int a, int b) { return a >= b; }
 
 // min과 max 사이의 랜덤 정수를 반환하는 함수.
 int RandomRange(int min, int max)
@@ -26,8 +38,8 @@ void PrintArray(const int* array, int length)
 }
 
 // 피벗 선택 함수.
-int Partition(int* array, int left, int right)
-{
+	int Partition(int* array, int left, int right, Comparer comparer = LessEqual)
+	{
 	// 피벗을 선택하는 방법은 다양한데 간단하게 첫번째 요소를 선택.
 	int pivot = array[left];
 
@@ -41,13 +53,15 @@ int Partition(int* array, int left, int right)
 	while (low <= high)
 	{
 		// 왼쪽에서 오른쪽으로 이동하면서 값 찾기.
-		while (low <= right && array[low] <= pivot)
+		//while (low <= right && array[low] <= pivot)
+		while (low <= right && comparer(array[low], pivot))
 		{
 			++low;
 		}
 
 		// 오른쪽에서 왼쪽으로 이동하면서 값 찾기.
-		while (high > left && pivot <= array[high])
+		//while (high > left && pivot <= array[high])
+		while (high > left && comparer(pivot, array[high]))
 		{
 			--high;
 		}
@@ -73,8 +87,8 @@ int Partition(int* array, int left, int right)
 }
 
 // 퀵정렬 함수(재귀).
-void QuickSort(int* array, int left, int right)
-{
+	void QuickSort(int* array, int left, int right, Comparer comparer = LessEqual)
+	{
 	// 종료 조건.
 	if (left >= right)
 	{
@@ -82,45 +96,122 @@ void QuickSort(int* array, int left, int right)
 	}
 
 	// 분할 - 피벗 선택 및 분할.
-	int pivotIndex = Partition(array, left, right);
+	int pivotIndex = Partition(array, left, right, comparer);
 
 	// 왼쪽 분할 배열 정렬 진행.
-	QuickSort(array, left, pivotIndex - 1);
+	QuickSort(array, left, pivotIndex - 1, comparer);
 
 	// 오른쪽 분할 배열 정렬 진행.
-	QuickSort(array, pivotIndex + 1, right);
-}
-
-int main()
-{
-	// 랜덤에 시드 전달.
-	srand(static_cast<uint32_t>(time(nullptr)));
-
-	// 배열 수.
-	const int length = 1000;
-
-	// 배열.
-	int original[length] = {};
-	for (int ix = 0; ix < length; ++ix)
-	{
-		int value = RandomRange(1, length);
-		original[ix] = value;
+	QuickSort(array, pivotIndex + 1, right, comparer);
 	}
 
-	// 정렬에 사용할 배열.
-	int array[length] = {};
+	// 현재 시간 반환 함수.
+	int64_t GetTime()
+	{
+		// 현재 시간 가져오기.
+		LARGE_INTEGER counter;
+		QueryPerformanceCounter(&counter);
+		return counter.QuadPart;
+	}
 
-	// 메모리 복사 -> 빠름.
-	memcpy(array, original, sizeof(int) * length);
+	// 시작/종료 시간을 받아 초단위의 경과 시간 반환 함수.
+	float GetElapsedTime(int64_t start, int64_t end)
+	{
+		// 시간 범위 단위(주파수-정밀도).
+		LARGE_INTEGER frequency;
+		QueryPerformanceFrequency(&frequency);
 
-	// 출력.
-	std::cout << "정렬 전 배열: ";
-	PrintArray(array, length);
+		return static_cast<float>(end - start)
+			/ static_cast<float>(frequency.QuadPart);
+	}
 
-	// 정렬.
-	QuickSort(array, 0, length - 1);
+	// 버블 정렬.
+	void BubbleSort(int* array, int length, Comparer comparer = Less)
+	{
+		for (int ix = 0; ix < length - 1; ++ix)
+		{
+			for (int jx = 0; ix < length - 1 - jx; ++jx)
+			{
+				if (comparer(array[jx], array[jx + 1]))
+				{
+					std::swap(array[jx], array[jx + 1]);
+				}
+			}
+		}
+	}
+		int main()
+		{
+			// 랜덤에 시드 전달.
+			srand(static_cast<uint32_t>(time(nullptr)));
 
-	// 정렬 후 출력.
-	std::cout << "\n정렬 후 배열: ";
-	PrintArray(array, length);
-}
+			// 배열 수.
+			const int length = 3000;
+
+			// 배열.
+			int original[length] = {};
+			for (int ix = 0; ix < length; ++ix)
+			{
+				int value = RandomRange(1, length);
+				original[ix] = value;
+			}
+
+			// 정렬에 사용할 배열.
+			int array[length] = {};
+
+			// 메모리 복사 -> 빠름.
+			memcpy(array, original, sizeof(int) * length);
+
+			// 버블 정렬.
+			int64_t start = GetTime();
+			BubbleSort(array, length);
+			int64_t end = GetTime();
+
+			// 경과시간 출력.
+			std::cout << "BubbleSort elapsed time: " << GetElapsedTime(start, end) << "\n";
+
+			// 버블 정렬.
+			start = GetTime();
+			BubbleSort(array, length, Greater);
+			end = GetTime();
+
+			// 경과시간 출력.
+			std::cout << "BubbleSort elapsed time: " << GetElapsedTime(start, end) << "\n";
+
+			// 출력.
+			std::cout << "정렬 전 배열: ";
+			PrintArray(array, length);
+			//std::cout << "정렬 전 배열: ";
+			//PrintArray(array, length);
+
+			// 메모리 복사 -> 빠름.
+			memcpy(array, original, sizeof(int) * length);
+
+			// 시간 재보기.
+			// 시작 시간 기록.
+			start = GetTime();
+
+			// 정렬.
+			QuickSort(array, 0, length - 1);
+			QuickSort(array, 0, length - 1, LessEqual);
+
+			// 정렬 후 시간 기록.
+			end = GetTime();
+
+			// 경과 시간(단위: 초).
+			float elapsed = GetElapsedTime(start, end);
+
+			// 시간 출력.
+			std::cout << "QuickSort elapsed time: " << elapsed << "\n";
+
+			start = GetTime();
+			QuickSort(array, 0, length - 1, GreaterEqual);
+			end = GetTime();
+
+			std::cout << "QuickSort elapsed time: " << GetElapsedTime(start, end) << "\n";
+
+			// 정렬 후 출력.
+			std::cout << "\n정렬 후 배열: ";
+			PrintArray(array, length);
+			//std::cout << "\n정렬 후 배열: ";
+			//PrintArray(array, length);
+		}
