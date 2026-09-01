@@ -39,7 +39,7 @@ public:
 	// 노드의 비용 정보.
 	float gCost = 0.0f;
 	float hCost = 0.0f;
-	float fCast = 0.0f;
+	float fCost = 0.0f;
 
 	// 최종 경로를 역 추적할 때 사용할 부모 노드.
 	Node* parent = nullptr;
